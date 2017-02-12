@@ -1,0 +1,281 @@
+---
+title: 'INFX 573: Problem Set 6 - Regression'
+author: "Meeta Pandit"
+date: 'Due: Tuesday, November 15, 2016'
+output:
+  html_document: default
+  pdf_document: default
+header-includes:
+- \newcommand{\benum}{\begin{enumerate}}
+- \newcommand{\eenum}{\end{enumerate}}
+- \newcommand{\bitem}{\begin{itemize}}
+- \newcommand{\eitem}{\end{itemize}}
+---
+
+<!-- This syntax can be used to add comments that are ignored during knitting process. -->
+
+##### Collaborators: 
+
+##### Instructions: #####
+
+Before beginning this assignment, please ensure you have access to R and RStudio. 
+
+1. Download the `problemset6.Rmd` file from Canvas. Open `problemset6.Rmd` in RStudio and supply your solutions to the assignment by editing `problemset6.Rmd`. 
+
+2. Replace the "Insert Your Name Here" text in the `author:` field with your own full name. Any collaborators must be listed on the top of your assignment. 
+
+3. Be sure to include well-documented (e.g. commented) code chucks, figures and clearly written text chunk explanations as necessary. Any figures should be clearly labeled and appropriately referenced within the text. 
+
+4. Collaboration on problem sets is acceptable, and even encouraged, but each student must turn in an individual write-up in his or her own words and his or her own work. The names of all collaborators must be listed on each assignment. Do not copy-and-paste from other students' responses or code.
+
+5. When you have completed the assignment and have **checked** that your code both runs in the Console and knits correctly when you click `Knit PDF`, rename the R Markdown file to `YourLastName_YourFirstName_ps6.Rmd`, knit a PDF and submit the PDF file on Canvas.
+
+##### Setup: #####
+
+In this problem set you will need, at minimum, the following R packages.
+
+```{r Setup, message=FALSE}
+# Load standard libraries
+library(tidyverse)
+library(MASS) # Modern applied statistics functions
+```
+
+\textbf{Housing Values in Suburbs of Boston}
+
+In this problem we will use the Boston dataset that is available in the \texttt{MASS} package. This dataset contains information about median house value for 506 neighborhoods in Boston, MA. Load this data and use it to answer the following questions.
+```{r}
+#data(package = "MASS")
+
+boston_data <- Boston
+#?Boston
+
+#str(boston_data)
+```
+\benum
+
+\item Describe the data and variables that are part of the \texttt{Boston} dataset. Tidy data as necessary.
+
+The data set contains information about varios parameters about Boston's population and locality. For example, the per capita crime rate by town,proportion of residential land, proportion of non-retail business per town, if the tract occupies charles river or not (boolean variable), nitrogen oxide concetration,average numbe of rooms in an apartment, proportionof owner-occupied units, weighted mean of distances to five Boston employment centers, index of accessibility to radial highways, property-tax rate per $10,000, pupil-teacher ratio by town, proportion of blacks by town, lower status of the population and median value of owner-occupied homes.
+
+\item Consider this data in context, what is the response variable of interest? Discuss how you think some of the possible predictor variables might be associated with this response.
+
+The response variable in the context of this data would be median value of owner-occupied homes in \$1000s (medv). With the help of other variables like proportion of owner-occupied units, weighted mean of distances to 5 Boston employment centres, pupil-teacher ratio by town, proportion of blacks by town, median value of owner occupied homes, lower status of the population (percent), proportion of non-retail business acres per town, per capita crime rate by town. Here, we can find an association of how median value of owner-occupied homes increases or decreases if we consider proportion of owner-occupied units, weighted mean of distances to 5 Boston towns etc as predictor variables.
+
+\item For each predictor, fit a simple linear regression model to predict the response. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions. 
+
+Let's consider the association between median value of owner-occupied homes in \$1000s as the response variable and crime rate by town as the predictor varaible
+
+```{r}
+lm_crim <- lm(medv~crim, data = boston_data)
+summary(lm_crim)
+
+plot(lm_crim, which = c(1))
+```
+The visualization indicates that there is not a linear relationship between crim and medv. The data points are not bouncing randomly across the linear regression line as there is no sero line due to the uneven nature of the points. But, there is definitely a significant association between median value of homes and crime rate as the p-value is much less than 0.05.
+
+We can also analyze the relationship between median value of homes and proportion of residential land zoned for lots over 25000 sq.ft.
+
+```{r}
+lm_zn <- lm(medv~zn, data = boston_data)
+summary(lm_zn)
+
+plot(lm_zn, which = c(1))
+
+```
+The reiduals vs fitted values graph indicates that the median value of homes and proportion of residential land zoned for lots are not linearly related as for every corresponding fitted value there is not a residual error to nullify the effect of that error. Also, the regression line is not linear. But, the the p-value is much less than 0.05 which indicates that there is a significant relationship between medv and zn but not linear.
+
+```{r}
+lm_indus <- lm(medv~indus, data = boston_data)
+summary(lm_indus)
+
+plot(lm_indus, which = c(1))
+```
+The shape of the regression line indicates that there is a non-linear relationship between median values of homes and proportion of non-retail business acres. Also, there are some outliers which do not have corresponding residuals below the trend line. 
+
+```{r}
+lm_chas <- lm(medv~chas, data = boston_data)
+summary(lm_chas)
+
+plot(lm_chas, which = c(1))
+```
+Fitting a linear model for variables with a Bernoulli distribution is viable. For example, one unit increase in a berboulli variable  is either a 1 or 0 and there are no continuous values for such variables. So, it is not helpful to analyze such variables using linear regression models, logistic models fit best for Bernoulli distributed variables.
+
+```{r}
+lm_nox <- lm(medv~nox, data = boston_data)
+summary(lm_nox)
+
+plot(lm_nox, which = c(1))
+```
+The fitted values are scattered all over the graph and they are not evenly distributed across the trend line. Also, the trend line is not a zero line and hence does not satisfy linear relationship criterion. But, the summary statistics shows there is a significant relationship between median value of homes and nitrogen oxides concentration as the p-value is much less than 0.05 may not be linear.
+
+Let's also consider the relationship between median value of homes and average number of rooms per dwelling.
+
+```{r}
+lm_rm <- lm(medv~rm, data = boston_data)
+summary(lm_rm)
+
+plot(lm_rm, which = c(1))
+```
+The points are spread unevenly across the trend line. Each point does not have a corresponding residual value to compensate for the error term. Hence, there is not a linear relationship between the median values of homes and average number of rooms per dwelling.
+
+Let's consider another redictor variable dis which is the weighted mean of distances to 5 Boston employment centres.
+
+```{r}
+lm_dis <- lm(medv~dis, data = boston_data)
+summary(lm_dis)
+
+plot(lm_dis, which = c(1))
+```
+The regression line is not linear and the points are scattered across the line unevenly. Hence, there is ni linear relationship between the median value of homes and weighted mean of distances to 5 Boston employment centres. Also, there are outliers marked by the row numbers in the graph.
+
+Let's also consider the median value of homes to accessibility to radial highways.
+
+```{r}
+lm_rad <- lm(medv~rad, data = boston_data)
+summary(lm_rad)
+
+plot(lm_rad, which = c(1))
+```
+The curve indicates a non-linear relationship between the 2 variables and also the data points are scattered across the curve with no corresponding residuals on both sides of the curve.
+
+We will also consider the effect of full-value property tax on median value of homes.
+
+```{r}
+lm_tax <- lm(medv~tax, data = boston_data)
+summary(lm_tax)
+
+plot(lm_tax, which = c(1))
+```
+The residuals vs fitted values graph shows that the regression line is almost linear but with some amount of non-linearity due to the uneven distribution of data points.
+
+Relationship between pupil-teacher ratio and median value of homes
+
+```{r}
+lm_ptratio <- lm(medv~ptratio, data = boston_data)
+summary(lm_ptratio)
+
+plot(lm_ptratio, which = c(1))
+```
+The relationship between median value of homes and pupil-teacher ration is clearly no-linear as the each ftted value does not have a residual value associated with it on the other side of the trend line.
+
+
+Relationship between proportion of blacks by town and median value of homes
+```{r}
+lm_black <- lm(medv~black , data = boston_data) 
+summary(lm_black)
+
+plot(lm_black, which = c(1))
+
+```
+Most of the fitted values are clustered around one area and also they are not randomly bouncing across the trend line. Hence, there is no evidence of a linear relationship between the median value of homes and proportion of black population by town.
+
+
+Lower status of population and median value of homes
+```{r}
+lm_lstat <- lm(medv~lstat, data = boston_data)
+summary(lm_lstat)
+
+plot(lm_lstat, which = c(1))
+
+```
+Again, the trend line indicates a non-linear relationship between the 2 variables and also there are some outliers with no corresponding residuals to nulligy the effect of this error.
+
+```{r}
+lm_age <- lm(medv~age , data = boston_data) 
+summary(lm_age)
+
+plot(lm_age, which = c(1))
+```
+The points are randomly bouncing around the trend line but there are outliers which have no corresponding residual error value on the other side of the trend line. Thus, they do not staisfy the criterion for linear relationship.
+
+\item Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis $H_0: \beta_j = 0$?
+
+```{r}
+lm_multiple <- lm(medv~crim+zn+indus+chas+nox+rm+rad+dis+tax+
+                    ptratio+lstat+black+age, data = boston_data)
+summary(lm_multiple)
+
+plot(lm_multiple, which = c(1))
+```
+The multiple regression model shows that we can reject the null hypothesis for all those predictors whose p-value is much less than 0.05 which means there is a significant relationship between the response and predictor. But, the residuals vs fitted values graph shows that there is no linear relationship between the response and all the predictor variables as the trend line is not linear which indicates that there are certain data points which do not have a corresponding match of residuals to nullify the elemnt of error. Also, there are some outliers which refrain the model from following the linearity priciples. 
+
+Thus, after analyzing the summary statistics of multiple regression model, we can safely reject the null hypothesis for the following variables: crim, zn, chas, nox, dis, ptratio, rad, rm, tax, lstat and black.
+
+\item How do your results from (3) compare to your results from (4)? Create a plot displaying the univariate regression coefficients from (3) on the x-axis and the multiple regression coefficients from part (4) on the y-axis. Use this visualization to support your response.
+
+```{r}
+#Create data frame for the coefficients of linear and multiple regression
+predictors <- c('CRIM', 'ZN', 'INDUS', 'CHAS','NOX', 'RM','RAD','DIS', 
+                'TAX','PTRATIO', 'LSTAT', 'BLACK', 'AGE')
+
+coeff_univariate <- c(coefficients(lm_crim)[2], coefficients(lm_zn)[2],
+                     coefficients(lm_indus)[2], coefficients(lm_chas)[2], 
+                     coefficients(lm_nox)[2],
+                      coefficients(lm_rm)[2], coefficients(lm_rad)[2],
+                     coefficients(lm_dis)[2],coefficients(lm_tax)[2],
+                     coefficients(lm_ptratio)[2], coefficients(lm_lstat)[2], 
+                     coefficients(lm_black)[2],coefficients(lm_age)[2])
+                     
+coeff_multiple <- c(coefficients(lm_multiple)[2:14])
+
+coeff_df <- data.frame(predictors, coeff_univariate, coeff_multiple)
+
+ggplot(coeff_df, aes(coeff_univariate, coeff_multiple, color = predictors))+
+       geom_point()
+
+```
+When we observe the coefficients of univariate analysis and multivariate analysis in the intermediate table coeff_df, it is evident that in multiple regression model the coefficient values decrease as compared to univariate regression model. From the graph it is visible that all the coefficients that have higher values in univariate analysis shows reduced coefficient values in the graph.
+
+
+
+\item Is there evidence of a non-linear association between any of the predictors and the response? To answer this question, for each predictor $X$ fit a model of the form:
+
+$$ Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \beta_3 X^3 + \epsilon $$
+```{r}
+#Non-linear regression models
+nlm_crim <- lm(medv~crim+I(crim^2)+I(crim^3), data = boston_data)
+summary(nlm_crim)
+nlm_zn <- lm(medv~zn+I(zn^2)+I(zn^3), data = boston_data)
+summary(nlm_zn)
+nlm_indus <- lm(medv~indus+I(indus^2)+I(indus^3), data = boston_data)
+summary(nlm_indus)
+nlm_chas <- lm(medv~chas+I(chas^2)+I(chas^3), data = boston_data)
+summary(nlm_chas)
+nlm_nox <- lm(medv~nox+I(nox^2)+I(nox^3), data = boston_data)
+summary(nlm_nox)
+nlm_rm <- lm(medv~rm+I(rm^2)+I(rm^3), data = boston_data)
+summary(nlm_rm)
+nlm_age <- lm(medv~age+I(age^2)+I(age^3), data = boston_data)
+summary(nlm_age)
+nlm_dis <- lm(medv~dis+I(dis^2)+I(dis^3), data = boston_data)
+summary(nlm_dis)
+nlm_rad <- lm(medv~rad+I(rad^2)+I(rad^3), data = boston_data)
+summary(nlm_rad)
+nlm_tax <- lm(medv~tax+I(tax^2)+I(tax^3), data = boston_data)
+summary(nlm_tax)
+nlm_ptratio <- lm(medv~ptratio+I(ptratio^2)+I(ptratio^3), data = boston_data)
+summary(nlm_ptratio)
+nlm_black <- lm(medv~black+I(black^2)+I(black^3), data = boston_data)
+summary(nlm_black)
+nlm_lstat <- lm(medv~lstat+I(lstat^2)+I(lstat^3), data = boston_data)
+summary(nlm_lstat)
+```
+On analyzing the summary statistics, it is observed that most of the predictors have the cubical coefficients which have significant p-values. Hence, the model cannot ignore these coefficients. Thus, if we retain the cubical coefficients then we have to keep the lower exponential coefficients. Thus, this indictaes that there is non-linear reationship betwwen the reposne that is median values of homes and other predictos. Though there are some predictors for which the quadratic and cubic coefficients are not very significant as their p-value is much higher. Thus, we cannot consider predictors like age, tax, and black to have even a non-linear relationship with the response.
+
+\item Consider performing a stepwise model selection procedure to determine the bets fit model. Discuss your results. How is this model different from the model in (4)?
+
+```{r}
+#Stepwise model selection
+step_model <- stepAIC(lm_multiple, direction = "both")
+step_model$anova
+```
+From the final step of stepwise model selection, does not consider the variables indus and age to generate best fir multiple regression model. This is because we start with all variables and the AIC value is 1589.64. Then we try removing age and the AIC value decreases to 1587. Then we try eliminating indus and the value increases a bit. Hence, in the next step we start with the best least AIC value got so far which is 1587.65 and eliminate age from this step. Now, when we eliminate indus, the value of AIC goes down further to 1585. Also, in the same step when we try to add indus it increases. So, in this step we got the least AIC of 1585. In the final step, we start with this AIC value obtained and try to add the removed values again. BUt, it is observed that AIC values goes on increasing. Hence, the best fit model has the least AIC when we eliminate age and indus.
+
+\item Evaluate the statistical assumptions in your regression analysis from (7) by performing a basic analysis of model residuals and any unusual observations. Discuss any concerns you have about your model.
+\eenum
+
+```{r}
+#Plot of residuals vs. fitted for the stepwise model
+plot(step_model, which = c(1))
+```
+The residuals vs. fitted values graph shows that there is a non-linear relationship between the response and the predictors. This is because the regression line is not coinciding with the 0 line in the above plot. This means the fitted values are not randomly bouncing arund the 0-line. Also, there are many outliers in the graph which do not have a corresponding residual value to nullify the effect of error introduced in the model. 
